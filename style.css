@@ -1,0 +1,52 @@
+body {
+    background-color: black;
+    color: white;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+  
+  .profile-circle {
+    width: 50px;
+    height: 50px;
+    background-color: yellow;
+    border-radius: 50%;
+    position: absolute;
+    top: 20px;
+  }
+  
+  #leftCircle {
+    left: 20px;
+  }
+  
+  #rightCircle {
+    right: 20px;
+  }
+  
+  .center-text {
+    font-size: 2em;
+    font-weight: bold;
+    margin-top: 20px;
+  }
+  
+  .bottom-rectangles {
+    display: flex;
+    margin-top: 20px;
+  }
+  
+  .rectangle {
+    margin: 0 10px;
+    text-align: center;
+    text-decoration: none;
+    color: white;
+  }
+  
+  .rectangle img {
+    
+    height: 100%;
+  }
+  
