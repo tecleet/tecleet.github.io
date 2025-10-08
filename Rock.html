@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rock Paper Scissors Battle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            overflow: hidden; /* Prevents scrollbars from appearing */
+        }
+        canvas {
+            display: block;
+            background: #ffffff;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .score-card {
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        #winner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+            z-index: 10;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        #winner-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4 antialiased">
+
+    <!-- Header with scores -->
+    <header class="w-full max-w-4xl mb-4">
+        <div class="grid grid-cols-3 gap-4 text-center">
+            <div class="p-4 rounded-lg shadow-md score-card">
+                <h2 class="text-2xl font-bold text-gray-700">ROCK 🪨</h2>
+                <p id="rock-count" class="text-3xl font-bold text-blue-600">2</p>
+            </div>
+            <div class="p-4 rounded-lg shadow-md score-card">
+                <h2 class="text-2xl font-bold text-gray-700">PAPER 📄</h2>
+                <p id="paper-count" class="text-3xl font-bold text-green-600">1</p>
+            </div>
+            <div class="p-4 rounded-lg shadow-md score-card">
+                <h2 class="text-2xl font-bold text-gray-700">SCISSORS ✂️</h2>
+                <p id="scissors-count" class="text-3xl font-bold text-red-600">30</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main canvas for the game -->
+    <main class="w-full max-w-4xl aspect-video">
+        <canvas id="gameCanvas"></canvas>
+    </main>
+    
+    <!-- Winner Overlay -->
+    <div id="winner-overlay">
+        <h1 class="text-8xl" id="winner-emoji"></h1>
+        <h2 class="text-4xl font-bold mt-4" id="winner-text">WINS!</h2>
+        <button id="restart-button" class="mt-8 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition-colors">Play Again</button>
+    </div>
+
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Score elements
+        const rockCountEl = document.getElementById('rock-count');
+        const paperCountEl = document.getElementById('paper-count');
+        const scissorsCountEl = document.getElementById('scissors-count');
+
+        // Winner overlay elements
+        const winnerOverlay = document.getElementById('winner-overlay');
+        const winnerEmoji = document.getElementById('winner-emoji');
+        const winnerText = document.getElementById('winner-text');
+        const restartButton = document.getElementById('restart-button');
+
+        // Game settings
+        const initialCounts = { rock: 2, paper: 1, scissors: 30 };
+        const objectRadius = 15;
+        const objectSpeed = 1.5;
+
+        let gameObjects = [];
+        let animationFrameId;
+
+        const types = {
+            rock: { emoji: '🪨', beats: 'scissors' },
+            paper: { emoji: '📄', beats: 'rock' },
+            scissors: { emoji: '✂️', beats: 'paper' }
+        };
+
+        // --- Game Object Class ---
+        class GameObject {
+            constructor(x, y, type) {
+                this.x = x;
+                this.y = y;
+                this.radius = objectRadius;
+                this.type = type;
+                this.emoji = types[type].emoji;
+
+                // Random direction, constant speed
+                const angle = Math.random() * 2 * Math.PI;
+                this.vx = Math.cos(angle) * objectSpeed;
+                this.vy = Math.sin(angle) * objectSpeed;
+            }
+
+            draw() {
+                ctx.font = `${this.radius * 2}px serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.emoji, this.x, this.y);
+            }
+
+            update() {
+                // Move object
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Wall collision detection
+                if (this.x - this.radius < 0 || this.x + this.radius > canvas.width) {
+                    this.vx *= -1;
+                    this.x = Math.max(this.radius, Math.min(this.x, canvas.width - this.radius));
+                }
+                if (this.y - this.radius < 0 || this.y + this.radius > canvas.height) {
+                    this.vy *= -1;
+                    this.y = Math.max(this.radius, Math.min(this.y, canvas.height - this.radius));
+                }
+            }
+            
+            changeType(newType) {
+                this.type = newType;
+                this.emoji = types[newType].emoji;
+            }
+        }
+
+        // --- Game Logic Functions ---
+        function init() {
+            // Resize canvas to fit container
+            const container = canvas.parentElement;
+            const size = Math.min(container.clientWidth, container.clientHeight);
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+
+            // Create initial objects
+            gameObjects = [];
+            for (const type in initialCounts) {
+                for (let i = 0; i < initialCounts[type]; i++) {
+                    const x = Math.random() * (canvas.width - objectRadius * 2) + objectRadius;
+                    const y = Math.random() * (canvas.height - objectRadius * 2) + objectRadius;
+                    gameObjects.push(new GameObject(x, y, type));
+                }
+            }
+            
+            winnerOverlay.classList.remove('show');
+            
+            // Start the game loop if it's not already running
+            if (!animationFrameId) {
+                gameLoop();
+            }
+        }
+
+        function handleCollisions() {
+            for (let i = 0; i < gameObjects.length; i++) {
+                for (let j = i + 1; j < gameObjects.length; j++) {
+                    const obj1 = gameObjects[i];
+                    const obj2 = gameObjects[j];
+
+                    if (obj1.type === obj2.type) continue;
+
+                    const dx = obj1.x - obj2.x;
+                    const dy = obj1.y - obj2.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < obj1.radius + obj2.radius) {
+                        // Collision detected!
+                        const type1 = obj1.type;
+                        const type2 = obj2.type;
+
+                        if (types[type1].beats === type2) {
+                            // obj1 wins, obj2 changes type
+                            obj2.changeType(type1);
+                        } else if (types[type2].beats === type1) {
+                            // obj2 wins, obj1 changes type
+                            obj1.changeType(type2);
+                        }
+                    }
+                }
+            }
+        }
+
+        function updateScoresAndCheckWinner() {
+            const counts = { rock: 0, paper: 0, scissors: 0 };
+            let activeTypes = new Set();
+            
+            for(const obj of gameObjects) {
+                counts[obj.type]++;
+                activeTypes.add(obj.type);
+            }
+
+            rockCountEl.textContent = counts.rock;
+            paperCountEl.textContent = counts.paper;
+            scissorsCountEl.textContent = counts.scissors;
+
+            if (activeTypes.size === 1) {
+                const winnerType = activeTypes.values().next().value;
+                endGame(winnerType);
+            }
+        }
+        
+        function endGame(winnerType) {
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null; // Stop the loop
+            winnerEmoji.textContent = types[winnerType].emoji;
+            winnerText.textContent = `${winnerType.toUpperCase()} WINS!`;
+            winnerOverlay.classList.add('show');
+        }
+
+        function gameLoop() {
+            // Clear the canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Update and draw each object
+            gameObjects.forEach(obj => obj.update());
+            
+            // Handle collisions between objects
+            handleCollisions();
+
+            // Draw objects after all updates
+            gameObjects.forEach(obj => obj.draw());
+            
+            // Update UI
+            updateScoresAndCheckWinner();
+
+            // Request the next frame
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        // --- Event Listeners ---
+        window.addEventListener('resize', init);
+        restartButton.addEventListener('click', init);
+
+        // --- Start the game ---
+        init();
+
+    </script>
+</body>
+</html>
+
