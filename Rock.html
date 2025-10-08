@@ -2,39 +2,175 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rock Paper Scissors Simulation</title>
+<title>Rock Paper Scissors Arena</title>
 <style>
   body {
     margin: 0;
+    background: linear-gradient(135deg, #ffffff, #f0f0f0);
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    height: 100vh;
     overflow: hidden;
-    background: white;
-    font-family: Arial, sans-serif;
   }
   #scoreboard {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
+    width: 100%;
     display: flex;
-    gap: 30px;
-    font-size: 20px;
-    font-weight: bold;
+    justify-content: space-around;
+    align-items: center;
+    background: #222;
+    color: white;
+    padding: 10px 0;
+    font-size: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .score-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
   canvas {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    background: white;
     display: block;
+    border-top: 2px solid #ddd;
   }
 </style>
 </head>
 <body>
   <div id="scoreboard">
-    <div>🪨 Rock: <span id="rock-count">2</span></div>
-    <div>✂️ Scissors: <span id="scissors-count">30</span></div>
-    <div>📄 Paper: <span id="paper-count">1</span></div>
+    <div class="score-item">🪨 Rock: <span id="rock-count">11</span></div>
+    <div class="score-item">✂️ Scissors: <span id="scissors-count">11</span></div>
+    <div class="score-item">📄 Paper: <span id="paper-count">11</span></div>
   </div>
   <canvas id="gameCanvas"></canvas>  <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight - document.getElementById('scoreboard').offsetHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    const emojis = {
+      rock: '🪨',
+      paper: '📄',
+      scissors: '✂️'
+    };
+
+    const counts = { rock: 11, paper: 11, scissors: 11 };
+    const entities = [];
+
+    function createEntities(type, count) {
+      for (let i = 0; i < count; i++) {
+        entities.push({
+          type,
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: (Math.random() - 0.5) * 3,
+          vy: (Math.random() - 0.5) * 3,
+          size: 32
+        });
+      }
+    }
+
+    Object.keys(counts).forEach(t => createEntities(t, counts[t]));
+
+    function updatePositions() {
+      entities.forEach(e => {
+        e.x += e.vx;
+        e.y += e.vy;
+        if (e.x < 0 || e.x > canvas.width - e.size) e.vx *= -1;
+        if (e.y < 0 || e.y > canvas.height - e.size) e.vy *= -1;
+      });
+    }
+
+    function drawEntities() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      entities.forEach(e => {
+        ctx.font = `${e.size}px serif`;
+        ctx.fillText(emojis[e.type], e.x, e.y);
+      });
+    }
+
+    function checkCollision(a, b) {
+      const dx = a.x - b.x;
+      const dy = a.y - b.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      return dist < 28;
+    }
+
+    function handleCollisions() {
+      for (let i = 0; i < entities.length; i++) {
+        for (let j = i + 1; j < entities.length; j++) {
+          const a = entities[i];
+          const b = entities[j];
+          if (checkCollision(a, b)) {
+            const winner = getWinner(a.type, b.type);
+            if (winner) {
+              const loser = winner === a.type ? b : a;
+              const winnerEntity = winner === a.type ? a : b;
+              // Loser transforms into winner
+              loser.type = winnerEntity.type;
+            }
+          }
+        }
+      }
+    }
+
+    function getWinner(a, b) {
+      if (a === b) return null;
+      if (a === 'rock' && b === 'scissors') return 'rock';
+      if (a === 'scissors' && b === 'paper') return 'scissors';
+      if (a === 'paper' && b === 'rock') return 'paper';
+      if (b === 'rock' && a === 'scissors') return 'rock';
+      if (b === 'scissors' && a === 'paper') return 'scissors';
+      if (b === 'paper' && a === 'rock') return 'paper';
+      return null;
+    }
+
+    function updateCounts() {
+      counts.rock = entities.filter(e => e.type === 'rock').length;
+      counts.paper = entities.filter(e => e.type === 'paper').length;
+      counts.scissors = entities.filter(e => e.type === 'scissors').length;
+    }
+
+    function updateScoreboard() {
+      document.getElementById('rock-count').textContent = counts.rock;
+      document.getElementById('scissors-count').textContent = counts.scissors;
+      document.getElementById('paper-count').textContent = counts.paper;
+    }
+
+    function checkWinner() {
+      const alive = Object.keys(counts).filter(t => counts[t] > 0);
+      if (alive.length === 1) {
+        ctx.font = '60px Poppins';
+        ctx.fillStyle = '#000';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${emojis[alive[0]]} WINS!`, canvas.width / 2, canvas.height / 2);
+        return true;
+      }
+      return false;
+    }
+
+    function gameLoop() {
+      updatePositions();
+      handleCollisions();
+      updateCounts();
+      drawEntities();
+      updateScoreboard();
+      if (!checkWinner()) requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+  </script></body>
+</html>    canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
     const emojis = {
