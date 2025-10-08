@@ -1,40 +1,159 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rock Paper Scissors Battle</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            overflow: hidden; /* Prevents scrollbars from appearing */
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rock Paper Scissors Simulation</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: white;
+    font-family: Arial, sans-serif;
+  }
+  #scoreboard {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 30px;
+    font-size: 20px;
+    font-weight: bold;
+  }
+  canvas {
+    display: block;
+  }
+</style>
+</head>
+<body>
+  <div id="scoreboard">
+    <div>🪨 Rock: <span id="rock-count">2</span></div>
+    <div>✂️ Scissors: <span id="scissors-count">30</span></div>
+    <div>📄 Paper: <span id="paper-count">1</span></div>
+  </div>
+  <canvas id="gameCanvas"></canvas>  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const emojis = {
+      rock: '🪨',
+      paper: '📄',
+      scissors: '✂️'
+    };
+
+    const entities = [];
+
+    // Initialize counts
+    const counts = { rock: 2, paper: 1, scissors: 30 };
+
+    function createEntities(type, count) {
+      for (let i = 0; i < count; i++) {
+        entities.push({
+          type,
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: (Math.random() - 0.5) * 4,
+          vy: (Math.random() - 0.5) * 4,
+          size: 30
+        });
+      }
+    }
+
+    createEntities('rock', counts.rock);
+    createEntities('paper', counts.paper);
+    createEntities('scissors', counts.scissors);
+
+    function updatePositions() {
+      entities.forEach(e => {
+        e.x += e.vx;
+        e.y += e.vy;
+
+        if (e.x < 0 || e.x > canvas.width - e.size) e.vx *= -1;
+        if (e.y < 0 || e.y > canvas.height - e.size) e.vy *= -1;
+      });
+    }
+
+    function drawEntities() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      entities.forEach(e => {
+        ctx.font = `${e.size}px serif`;
+        ctx.fillText(emojis[e.type], e.x, e.y);
+      });
+    }
+
+    function checkCollision(a, b) {
+      const dx = a.x - b.x;
+      const dy = a.y - b.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      return dist < 30;
+    }
+
+    function handleCollisions() {
+      for (let i = 0; i < entities.length; i++) {
+        for (let j = i + 1; j < entities.length; j++) {
+          const a = entities[i];
+          const b = entities[j];
+          if (checkCollision(a, b)) {
+            const winner = getWinner(a.type, b.type);
+            if (winner) {
+              const loser = winner === a.type ? b : a;
+              const winnerEntity = winner === a.type ? a : b;
+              loser.dead = true;
+              winnerEntity.size = Math.min(winnerEntity.size + 1, 60);
+            }
+          }
         }
-        canvas {
-            display: block;
-            background: #ffffff;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      for (let i = entities.length - 1; i >= 0; i--) {
+        if (entities[i].dead) {
+          counts[entities[i].type]--;
+          entities.splice(i, 1);
         }
-        .score-card {
-            background-color: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-        }
-        #winner-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            color: white;
-            z-index: 10;
+      }
+    }
+
+    function getWinner(a, b) {
+      if (a === b) return null;
+      if (a === 'rock' && b === 'scissors') return 'rock';
+      if (a === 'scissors' && b === 'paper') return 'scissors';
+      if (a === 'paper' && b === 'rock') return 'paper';
+      if (b === 'rock' && a === 'scissors') return 'rock';
+      if (b === 'scissors' && a === 'paper') return 'scissors';
+      if (b === 'paper' && a === 'rock') return 'paper';
+      return null;
+    }
+
+    function updateScoreboard() {
+      document.getElementById('rock-count').textContent = counts.rock;
+      document.getElementById('scissors-count').textContent = counts.scissors;
+      document.getElementById('paper-count').textContent = counts.paper;
+    }
+
+    function checkWinner() {
+      const aliveTypes = Object.keys(counts).filter(k => counts[k] > 0);
+      if (aliveTypes.length === 1) {
+        ctx.font = '60px Arial';
+        ctx.fillText(`${emojis[aliveTypes[0]]} Wins!`, canvas.width / 2 - 100, canvas.height / 2);
+        return true;
+      }
+      return false;
+    }
+
+    function gameLoop() {
+      updatePositions();
+      handleCollisions();
+      drawEntities();
+      updateScoreboard();
+      if (!checkWinner()) {
+        requestAnimationFrame(gameLoop);
+      }
+    }
+
+    gameLoop();
+  </script></body>
+</html>            z-index: 10;
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.5s ease, visibility 0.5s ease;
