@@ -1,31 +1,178 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rock Paper Scissors Arena</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rock Paper Scissors Battle</title>
 <style>
   body {
     margin: 0;
-    background: linear-gradient(135deg, #ffffff, #f0f0f0);
-    font-family: 'Poppins', sans-serif;
+    background: #fff;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
-    height: 100vh;
-    overflow: hidden;
+    font-family: "Poppins", sans-serif;
   }
-  #scoreboard {
+
+  header {
     width: 100%;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    background: #222;
-    color: white;
+    text-align: center;
+    background: linear-gradient(to right, #4facfe, #00f2fe);
+    color: #fff;
     padding: 10px 0;
-    font-size: 18px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    font-weight: bold;
+    font-size: 1.2em;
+    letter-spacing: 1px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   }
+
+  canvas {
+    background: white;
+    display: block;
+    width: 100%;
+    height: calc(100vh - 60px);
+    touch-action: none;
+  }
+
+  .winner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 3em;
+    font-weight: bold;
+    color: #333;
+    background: rgba(255,255,255,0.8);
+    padding: 20px 40px;
+    border-radius: 20px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+  }
+</style>
+</head>
+<body>
+<header id="scoreboard">🪨 Rock: 11 | 📄 Paper: 11 | ✂️ Scissors: 11</header>
+<canvas id="battleCanvas"></canvas>
+<div id="winner" class="winner" style="display:none;"></div>
+
+<script>
+const canvas = document.getElementById("battleCanvas");
+const ctx = canvas.getContext("2d");
+let width, height;
+
+function resizeCanvas() {
+  width = canvas.width = window.innerWidth;
+  height = canvas.height = window.innerHeight - 60;
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+const types = ["rock", "paper", "scissors"];
+const emojis = {
+  rock: "🪨",
+  paper: "📄",
+  scissors: "✂️"
+};
+const beats = {
+  rock: "scissors",
+  scissors: "paper",
+  paper: "rock"
+};
+const colors = {
+  rock: "#4f86f7",
+  paper: "#3ddc97",
+  scissors: "#f94144"
+};
+
+let objects = [];
+const totalEach = 11;
+const total = totalEach * 3;
+const radius = 20;
+const speed = 2;
+
+for (let type of types) {
+  for (let i = 0; i < totalEach; i++) {
+    objects.push({
+      type,
+      x: Math.random() * (width - radius * 2) + radius,
+      y: Math.random() * (height - radius * 2) + radius,
+      vx: (Math.random() < 0.5 ? -1 : 1) * speed,
+      vy: (Math.random() < 0.5 ? -1 : 1) * speed
+    });
+  }
+}
+
+function update() {
+  // Move
+  for (let o of objects) {
+    o.x += o.vx;
+    o.y += o.vy;
+
+    if (o.x < radius || o.x > width - radius) o.vx *= -1;
+    if (o.y < radius || o.y > height - radius) o.vy *= -1;
+  }
+
+  // Collisions
+  for (let i = 0; i < objects.length; i++) {
+    for (let j = i + 1; j < objects.length; j++) {
+      let a = objects[i];
+      let b = objects[j];
+      let dx = a.x - b.x;
+      let dy = a.y - b.y;
+      let dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < radius * 1.5) {
+        // bounce
+        [a.vx, b.vx] = [b.vx, a.vx];
+        [a.vy, b.vy] = [b.vy, a.vy];
+
+        // battle
+        if (beats[a.type] === b.type) {
+          b.type = a.type;
+        } else if (beats[b.type] === a.type) {
+          a.type = b.type;
+        }
+      }
+    }
+  }
+
+  // Count
+  let counts = { rock: 0, paper: 0, scissors: 0 };
+  for (let o of objects) counts[o.type]++;
+
+  document.getElementById("scoreboard").textContent =
+    `🪨 Rock: ${counts.rock} | 📄 Paper: ${counts.paper} | ✂️ Scissors: ${counts.scissors}`;
+
+  // Winner
+  for (let type of types) {
+    if (counts[type] === total) {
+      document.getElementById("winner").style.display = "block";
+      document.getElementById("winner").textContent = `${emojis[type]} ${type.toUpperCase()} WINS!`;
+      cancelAnimationFrame(animFrame);
+      return;
+    }
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, width, height);
+  for (let o of objects) {
+    ctx.font = "24px serif";
+    ctx.fillText(emojis[o.type], o.x - 12, o.y + 10);
+  }
+}
+
+let animFrame;
+function loop() {
+  update();
+  draw();
+  animFrame = requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+</body>
+</html>  }
   .score-item {
     display: flex;
     align-items: center;
