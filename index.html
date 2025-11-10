@@ -1,35 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3760850356691370"
-     crossorigin="anonymous"></script>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
-  <title>Your Website</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teklit Kidane Kahsay - Full-Stack Developer</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <script defer src="script.js"></script>
 </head>
 <body>
-  <div class="profile-circle" id="leftCircle"></div>
-  <div class="profile-circle" id="rightCircle"></div>
-  <div class="center-text">Tecleet</div>
-  <div class="bottom-rectangles">
-    <a href="https://tecleet.github.io/sudoku/" class="rectangle">
-      <img src="capture.PNG" alt="Link 1">
-    </a>
-    <a href="https://tecleet.github.io/wudasemariam/" class="rectangle">
-      <img src="capture2.PNG" alt="Link 2">
-    </a>
-    <a href="https://tecleet.github.io/xo/" class="rectangle">
-      <img src="capture3.PNG" alt="Link 3">
-    </a>
-    <a href="https://tecleet.github.io/Rock" class="rectangle">
-      <img src="image.jpg" alt="Link 4">
-    </a>
-  </div>
-  <script src="script.js"></script>
+
+    <header class="navbar">
+        <div class="container">
+            <a href="#" class="nav-logo">Teklit K.</a>
+            <nav>
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#projects">Projects</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section id="home" class="hero">
+        <div class="container hero-content">
+            <div class="hero-text">
+                <h1 class="hidden">Teklit Kidane Kahsay</h1>
+                <p class="subtitle hidden">Full-Stack Web Developer</p>
+                <div class="social-links hidden">
+                    <a href="https://github.com/tecleet" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
+                    <a href="https://www.linkedin.com/in/tecleet/" target="_blank" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                    <a href="https://twitter.com/tecleet" target="_blank" title="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="mailto:teklitkidane000@gmail.com" title="Email"><i class="fas fa-envelope"></i></a>
+                </div>
+            </div>
+            <img src="tecleet.png" alt="Teklit Kidane Kahsay" class="hero-img hidden">
+        </div>
+    </section>
+
+    <section id="about" class="about-section">
+        <div class="container">
+            <h2 class="section-title hidden">About Me</h2>
+            <p class="about-bio hidden">
+                I'm a self-taught Full-Stack Web Developer with a deep passion for technology and AI. 
+                I thrive on solving complex problems and love making things simpler and more efficient than before.
+                As a fast, self-motivated learner, I'm constantly acquiring new skills to build impactful solutions.
+            </p>
+            
+            <h3 class="subsection-title hidden">My Skills</h3>
+            <div class="skills-grid hidden">
+                <div class="skill-tag">JavaScript</div>
+                <div class="skill-tag">HTML</div>
+                <div class="skill-tag">CSS</div>
+                <div class="skill-tag">Python</div>
+                <div class="skill-tag">Stock Management</div>
+                <div class="skill-tag">Data Analysis</div>
+                <div class="skill-tag">Problem Solving</div>
+                <div class="skill-tag">AI Integration</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="projects" class="projects-section">
+        <div class="container">
+            <h2 class="section-title hidden">My Projects</h2>
+            <div class="projects-grid">
+
+                <div class="project-card hidden">
+                    <div class="project-card-content">
+                        <h3>YouTube Banner Changer</h3>
+                        <p>A tool to dynamically update a YouTube channel's banner. (Please provide a more detailed description!)</p>
+                        <a href="#" class="btn-project">View on GitHub</a>
+                    </div>
+                </div>
+
+                <div class="project-card hidden">
+                    <div class="project-card-content">
+                        <h3>Stock Data Tracker</h3>
+                        <p>A dashboard for tracking and analyzing stock data. (Please provide a more detailed description!)</p>
+                        <a href="#" class="btn-project">View on GitHub</a>
+                    </div>
+                </div>
+
+                <div class="project-card hidden">
+                    <div class="project-card-content">
+                        <h3>My Portfolio</h3>
+                        <p>This very website! Built with clean HTML, modern CSS, and subtle JavaScript animations.</p>
+                        <a href="https://github.com/tecleet/tecleet.github.io" class="btn-project">View on GitHub</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="contact-section">
+        <div class="container text-center hidden">
+            <h2 class="section-title">Get In Touch</h2>
+            <p>I'm always open to discussing new projects or opportunities. Feel free to send me an email!</p>
+            <a href="mailto:teklitkidane000@gmail.com" class="btn-contact">Say Hello</a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Teklit Kidane Kahsay. All rights reserved.</p>
+        </div>
+    </footer>
+
 </body>
 </html>
-
-
-
-
